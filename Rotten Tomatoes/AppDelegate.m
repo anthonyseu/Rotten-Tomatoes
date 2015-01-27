@@ -20,12 +20,23 @@
     // Override point for customization after application launch.
     
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    MovieListViewController *vc = [[MovieListViewController alloc] init];
-    UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:vc];
-    self.window.rootViewController = navigationController;
+    
+    MovieListViewController *boxOfficeVC = [[MovieListViewController alloc] init];
+    UINavigationController *boxOfficeNVC = [[UINavigationController alloc] initWithRootViewController:boxOfficeVC];
+    boxOfficeNVC.tabBarItem.image = [UIImage imageNamed:@"movie"];
+    boxOfficeNVC.tabBarItem.title = @"Box Office";
+    
+    MovieListViewController *dvdVC = [[MovieListViewController alloc] init];
+    UINavigationController *dvdNVC = [[UINavigationController alloc] initWithRootViewController:dvdVC];
+    dvdNVC.tabBarItem.image = [UIImage imageNamed:@"dvd"];
+    dvdNVC.tabBarItem.title = @"Top DVDs";
+    
+    UITabBarController *tabBarController = [[UITabBarController alloc] init];
+    tabBarController.viewControllers = @[boxOfficeNVC, dvdNVC];
+    
+    self.window.rootViewController = tabBarController;
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
-    
     return YES;
 }
 

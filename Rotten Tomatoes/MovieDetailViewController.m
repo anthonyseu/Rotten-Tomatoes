@@ -27,9 +27,7 @@
     [self.backgoundPoster setImageWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:oriUrl]] placeholderImage:self.thumbImage success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
         self.backgoundPoster.image = image;
     } failure:nil];
-    
-//    [self.backgoundPoster setImageWithURL:[NSURL URLWithString:oriUrl]];
-    
+        
     // view title
     self.title = [self.movieObj valueForKeyPath:@"title"];
     
@@ -40,7 +38,7 @@
     
     // scroll view
     CGRect newBackgroundViewFrame = self.backgroundView.frame;
-    newBackgroundViewFrame.size.height = self.movieSynopsis.frame.origin.y + self.movieSynopsis.frame.size.height + 200;
+    newBackgroundViewFrame.size.height = self.movieSynopsis.frame.origin.y + self.movieSynopsis.frame.size.height + 250;
     self.backgroundView.frame = newBackgroundViewFrame;
     [self.detailScrollView setContentSize:CGSizeMake(self.detailScrollView.frame.size.width, self.backgroundView.frame.origin.y + self.backgroundView.frame.size.height - 180)];
     

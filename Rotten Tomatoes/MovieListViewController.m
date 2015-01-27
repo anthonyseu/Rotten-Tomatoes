@@ -17,22 +17,19 @@
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
 @property (nonatomic, strong) JGProgressHUD *HUD;
 @property (weak, nonatomic) IBOutlet UILabel *networkErrorLabel;
-@property (weak, nonatomic) NSString *searchText;
-@property (weak, nonatomic) IBOutlet UISearchBar *movieSearchBar;
-@property (weak, nonatomic) NSArray *searchResults;
 @end
 
 @implementation MovieListViewController
 
 - (void)viewDidLoad {
-    // view default settings
-    self.title = @"Movies";
-    
+    // title
+    [self.navigationItem setTitle:@"Movies"];
+
     // table view setting
     self.movieListTableView.dataSource = self;
     self.movieListTableView.delegate = self;
     self.movieListTableView.rowHeight = 110;
-    
+        
     // register the list cell
     UINib *myCellNib = [UINib nibWithNibName:@"MovieTableViewCell" bundle:nil];
     [self.movieListTableView registerNib:myCellNib forCellReuseIdentifier:@"MovieTableViewCell"];
@@ -69,8 +66,15 @@
     
     NSDictionary *obj = self.movieArray[indexPath.row];
     NSString *urlString = [obj valueForKeyPath:@"posters.thumbnail"];
-
-    [cell.thumbnailPoster setImageWithURL:[NSURL URLWithString:urlString]];
+    
+    [cell.thumbnailPoster setImageWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+        // fade in the image
+        cell.thumbnailPoster.image = image;
+        cell.thumbnailPoster.alpha = 0.0;
+        [UIView animateWithDuration:0.5 animations:^{
+            cell.thumbnailPoster.alpha = 1.0;
+        }];
+    } failure:nil];
     [cell.movieTitle setText:[obj valueForKeyPath:@"title"]];
     [cell.movieYear setText:[NSString stringWithFormat: @"%@", [obj valueForKey:@"year"]]];
     [cell.movieRuntime setText:[NSString stringWithFormat: @"%@min", [obj valueForKey:@"runtime"]]];
@@ -79,12 +83,34 @@
     return cell;
 }
 
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [self.movieListTableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    UIImageView *thumbImageView = ((MovieTableViewCell *)[tableView cellForRowAtIndexPath:indexPath]).thumbnailPoster;
+    UIImage *thumbImage = thumbImageView.image;
+    
+    MovieDetailViewController *detailController = [[MovieDetailViewController alloc] init];
+    NSDictionary *obj = self.movieArray[indexPath.row];
+    detailController.movieObj = obj;
+    detailController.thumbImage = thumbImage;
+    
+    [self.navigationController pushViewController:detailController animated:YES];
+}
+
 - (void)onRefresh {
     [self doLoadData];
 }
 
 - (void)doLoadData {
-    NSURL *url = [NSURL URLWithString:@"http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=28rdf5pc7pkc38v7mvnrtsb4"];
+    
+    NSURL *url = nil;
+    
+    if (self.tabBarController.selectedIndex == 1) {
+        url = [NSURL URLWithString:@"http://api.rottentomatoes.com/api/public/v1.0/lists/dvds/top_rentals.json?apikey=28rdf5pc7pkc38v7mvnrtsb4"];
+    } else {
+        url = [NSURL URLWithString:@"http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=28rdf5pc7pkc38v7mvnrtsb4"];
+    }
+    
     NSURLRequest *request = [[NSURLRequest alloc] initWithURL:url];
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         if (connectionError != nil) {
@@ -107,20 +133,6 @@
         [self.refreshControl endRefreshing];
 
     }];
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [self.movieListTableView deselectRowAtIndexPath:indexPath animated:YES];
-    
-    UIImageView *thumbImageView = ((MovieTableViewCell *)[tableView cellForRowAtIndexPath:indexPath]).thumbnailPoster;
-    UIImage *thumbImage = thumbImageView.image;
-    
-    MovieDetailViewController *detailController = [[MovieDetailViewController alloc] init];
-    NSDictionary *obj = self.movieArray[indexPath.row];
-    detailController.movieObj = obj;
-    detailController.thumbImage = thumbImage;
-    
-    [self.navigationController pushViewController:detailController animated:YES];
 }
 
 /*
