@@ -12,8 +12,11 @@
 #import "JGProgressHUD.h"
 
 @interface MovieListViewController ()
+@property (weak, nonatomic) IBOutlet UISearchBar *movieSearchBar;
 @property (weak, nonatomic) IBOutlet UITableView *movieListTableView;
 @property (nonatomic, strong) NSArray *movieArray;
+@property (nonatomic, strong) NSMutableArray *searchResults;
+@property (nonatomic, strong) NSArray *apiResponse;
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
 @property (nonatomic, strong) JGProgressHUD *HUD;
 @property (weak, nonatomic) IBOutlet UILabel *networkErrorLabel;
@@ -22,6 +25,8 @@
 @implementation MovieListViewController
 
 - (void)viewDidLoad {
+    self.movieSearchBar.delegate = self;
+    
     // title
     [self.navigationItem setTitle:@"Movies"];
 
@@ -126,6 +131,7 @@
         } else {
             NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
             self.movieArray = (NSArray *)[responseDictionary valueForKeyPath:@"movies"];
+            self.apiResponse = self.movieArray;
             self.networkErrorLabel.hidden = YES;
             [self.movieListTableView reloadData];
         }
@@ -135,6 +141,30 @@
     }];
 }
 
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
+{
+//    [tableData removeAllObjects];// remove all data that belongs to previous search
+    if([searchText isEqualToString:@""] || searchText==nil){
+        self.movieArray = self.apiResponse;
+        [self.movieListTableView reloadData];
+        return;
+    }
+    
+    self.searchResults = [[NSMutableArray alloc] init];
+    
+    for(NSDictionary *movieObj in self.movieArray)
+    {
+        NSString *title = [movieObj valueForKey:@"title"];
+        NSRange r = [title rangeOfString:searchText];
+        if(r.location != NSNotFound)
+        {
+            [self.searchResults addObject:movieObj];
+        }
+    }
+
+    self.movieArray = self.searchResults;
+    [self.movieListTableView reloadData];
+}
 /*
 #pragma mark - Navigation
 
